@@ -1,6 +1,7 @@
 from math import *
-from baze_interpolation import *
-from  multi_interp import *
+
+from lab2.baze_interpolation import *
+from lab2.multi_interp import *
 
 
 def f(x):
