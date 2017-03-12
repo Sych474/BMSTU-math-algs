@@ -12,6 +12,10 @@ def z(x, y):
     return x*x + y*y
 
 
+def z1(x, y):
+    return sin(x)+cos(y)**2 + x*x - y*y
+
+
 def print_multi_table(table):
     print("|    x  |    y  |    z  |")
     for point in table:
@@ -120,17 +124,19 @@ def get_zero(f1, f2, a, b, dx):
     return x
 
 
-x_min = 0
-x_max = 20
-y_min = 0
-y_max = 20
-dx = 2
-dy = 2
-matr = prepair_matr(x_min=x_min,x_max=x_max, y_min=y_min, y_max=y_max,dx=dx, dy=dy, z=z)
-x = 1.222
-y = 1.1345763
+x_min = -10
+x_max = 10
+y_min = -10
+y_max = 10
+dx = 1
+dy = 1
+matr = prepair_matr(x_min=x_min,x_max=x_max, y_min=y_min, y_max=y_max, dx=dx, dy=dy, z=z)
+x = float(input("x: "))
+y = float(input("y: "))
+n_x = int(input("n_x: "))
+n_y = int(input("n_y: "))
 real_z = z(x, y)
-calc_z = multy_interp(matr=matr, n_x=3, n_y=2, x=x, y=y)
+calc_z = multy_interp(matr=matr, n_x=n_x, n_y=n_y, x=x, y=y)
 print("calculated z: ", calc_z)
 print("real z(x,y): ", real_z)
 print("difference: ", real_z - calc_z)
