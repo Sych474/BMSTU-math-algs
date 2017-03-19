@@ -9,7 +9,8 @@ def prepare_spline_table(x, y):
     b = [0 for i in range(n)]
     c = [0 for i in range(n)]
     d = [0 for i in range(n)]
-    A = 0; B = 0; D = 0; F = 0; hi_next = 0; hi_prev = 0;
+    A = 0; B = 0; D = 0; F = 0; hi_next = 0; hi_prev = 0
+    #Прогонка прямой шаг
     for i in range(1, n-1):
         hi_prev = x[i] - x[i-1]
         hi_next = x[i+1] - x[i]
@@ -19,11 +20,11 @@ def prepare_spline_table(x, y):
         ksi_array[i] = -hi_next/K
         eta_array[i] = (F - hi_prev * eta_array[i-1])/K
 
-    #Pn = 3 * ((x_y[n][1]-x_y[n-1][1])/hn - (x_y[n-1][1]-x_y[n-2][1])/hn_1)
-    #Mn = hn_1
-    #Kn = 2 * (hn + hn_1)
-    #c[n] = (Pn - Mn * eta_array[n]) / (Kn + Mn * ksi_array[n])
-    c[n-1] = (F - hi_prev*eta_array[n-2])/(B + hi_prev * ksi_array[n-2])
+
+    # Костыли
+    if (n-1 < 1):
+        c[n-1] = (F - hi_prev*eta_array[n-2])/(B + hi_prev * ksi_array[n-2])
+    # Прогонка обратный ход
     for i in range(n-2, 0, -1):
         c[i] = c[i+1] * ksi_array[i] + eta_array[i]
 
@@ -46,7 +47,7 @@ def get_x_y(f, a, b, dx):
     return x_arr, y_arr
 
 
-def spline_interpolation(a, b, c, d, x_arr,  x):
+def spline_interpolation(a, b, c, d, x_arr, x):
     n = len(x_arr)
     if x < x_arr[0]:
         ind = 0
@@ -67,26 +68,35 @@ def spline_interpolation(a, b, c, d, x_arr,  x):
     return y
 
 
+
+
+
+
+
+
 def f(x):
-    return sin(4*x)
+    return x
+
+a = 0
+b = 1
+dx = 1
+if (b - a)/dx < 0:
+    print("Less then 2 intervals")
+else:
+    x_arr, y_arr = get_x_y(f=f, a=a, b=b, dx=dx)
+    a, b, c, d = prepare_spline_table(x=x_arr, y=y_arr)
+    #print(a)
+    #print(b)
+    #print(c)
+    #print(d)
+    x = float(input("Input x: "))
+    y = spline_interpolation(a=a, b=b, c=c, d=d, x_arr=x_arr, x=x)
+    print("calculated: ", y)
+    print("real: ", f(x))
+    print("\ndiff: ", abs(f(x)-y))
 
 
-x, y = get_x_y(f=f, a=-5, b=5, dx=1)
-a, b, c, d = prepare_spline_table(x=x, y=y)
-print(a)
-print(b)
-print(c)
-print(d)
 
-x1 = 1.1
-x2 = 1.2
-x3 = 1.5
-x4 = 2
-y1 = spline_interpolation(a=a, b=b, c=c, d=d, x_arr=x, x=x1)
-y2 = spline_interpolation(a=a, b=b, c=c, d=d, x_arr=x, x=x2)
-y3 = spline_interpolation(a=a, b=b, c=c, d=d, x_arr=x, x=x3)
-y4 = spline_interpolation(a=a, b=b, c=c, d=d, x_arr=x, x=x4)
-print("x = ", x1, "y = ", y1)
-print("x = ", x2, "y = ", y2)
-print("x = ", x3, "y = ", y3)
-print("x = ", x4, "y = ", y4)
+
+
+
