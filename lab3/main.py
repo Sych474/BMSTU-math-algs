@@ -1,4 +1,4 @@
-
+from random import randint
 from collections import namedtuple
 
 Point = namedtuple('Table', ['x', 'y', 'p'])
@@ -16,6 +16,7 @@ def get_table(filename):
             x, y, p = map(float, line.split())
             table.append(Point(x, y, p))
             line = f.readline()
+    table.sort()
     return table
 
 
@@ -110,9 +111,38 @@ def get_aproximation_array(table , n):
     print(a_arr)
     return a_arr
 
+from math import sin
 
+
+def f(x):
+    return sin(x)
+
+
+def f1(x):
+    return x*x
+
+
+def prepare_table(filename, f, a, b, dx, delta):
+    with open(filename, "w") as file:
+        x = a
+        while x <= b:
+            y = f(x) + randint(-100, 100)/200 * delta
+            p = 1
+            print("{:7.3f} {:7.3f} {:7.3f}".format(x, y, p), file=file)
+            x += dx
+
+
+def print_table(table):
+    print(" "*6+"x"+" "*7+"y"+" "*7+"p")
+    for line in table:
+        print("{:7.3f} {:7.3f} {:7.3f}".format(line.x, line.y, line.p))
+
+prepare_table(filename="t2.txt", f=f1, a=-2.5, b=2.5, dx=0.1, delta=3)
 table = get_table("table.txt")
+print_table(table)
 n = int(input("Введите степень полинома: "))
-A = get_aproximation_array(table, n)
-
-print_plot(table, A, n)
+if n+1 > len(table):
+    print("В таблице недостаточно точек")
+else:
+    A = get_aproximation_array(table, n)
+    print_plot(table, A, n)
