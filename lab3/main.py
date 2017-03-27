@@ -1,11 +1,26 @@
 from random import randint
 from collections import namedtuple
+from numpy import *
 
 Point = namedtuple('Table', ['x', 'y', 'p'])
 
 
 def fi(x, k):
     return x**k
+
+
+def print_matr(m):
+    for i in range(len(m)):
+        for j in range(len(m[i])):
+            print("{:9.6f}".format(m[i][j]), end=" ")
+        print()
+
+
+def print_array(a_arr):
+    for i in range(len(a_arr)):
+        print(a_arr[i], end=" ")
+    print()
+
 
 
 def get_table(filename):
@@ -93,6 +108,73 @@ def get_reverse(matrix):
     return rev
 
 
+def get_AB(A, B):
+    n = len(A)
+    #прямой ход
+    for i in range(n):
+        if A[i][i] == 0:
+            for j in range(i+1, n):
+                if A[j][j] != 0:
+                    A[i], A[j] = A[j], A[i]
+                    B[i], B[j] = B[j], B[i]
+                    break
+        for j in range(i+1, n):
+            mult = A[j][i] / A[i][i]
+            for k in range(n):
+                A[j][k] -= A[i][k] * mult
+            B[j] -= B[i] * mult
+    #обратный ход
+    for i in range(n-1, -1, -1):
+        if A[i][i] == 0:
+            for j in range(i - 1, -1, -1):
+                if A[j][j] != 0:
+                    A[i], A[j] = A[j], A[i]
+                    B[i], B[j] = B[j], B[i]
+                    break
+        for j in range(i - 1, -1, -1):
+            mult = A[j][i] / A[i][i]
+            for k in range(n):
+                A[j][k] -= A[i][k] * mult
+            B[j] -= B[i] * mult
+    for i in range(n):
+        B[i] /= A[i][i]
+    return B
+
+
+def get_AB_eps(A, B):
+    eps = 10 ** -19
+    n = len(A)
+    #прямой ход
+    for i in range(n):
+        if abs(A[i][i]) < eps:
+            for j in range(i+1, n):
+                if abs(A[j][j]) > eps:
+                    A[i], A[j] = A[j], A[i]
+                    B[i], B[j] = B[j], B[i]
+                    break
+        for j in range(i+1, n):
+            mult = A[j][i] / A[i][i]
+            for k in range(n):
+                A[j][k] -= A[i][k] * mult
+            B[j] -= B[i] * mult
+    #обратный ход
+    for i in range(n-1, -1, -1):
+        if abs(A[i][i]) < eps:
+            for j in range(i - 1, -1, -1):
+                if abs(A[j][j]) > eps:
+                    A[i], A[j] = A[j], A[i]
+                    B[i], B[j] = B[j], B[i]
+                    break
+        for j in range(i - 1, -1, -1):
+            mult = A[j][i] / A[i][i]
+            for k in range(n):
+                A[j][k] -= A[i][k] * mult
+            B[j] -= B[i] * mult
+    for i in range(n):
+        B[i] /= A[i][i]
+    return B
+
+
 def mult(col, matr):
     n = len(col)
     res = [0 for j in range(n)]
@@ -104,12 +186,9 @@ def mult(col, matr):
 
 def get_aproximation_array(table , n):
     m, b = get_slau(table, n)
-    print(b)
-    print(m)
-    m_rev = get_reverse(m)
-    a_arr = mult(b, m_rev)
-    print(a_arr)
-    return a_arr
+    a = get_AB_eps(m, b)
+    return a
+
 
 from math import sin
 
@@ -123,10 +202,11 @@ def f1(x):
 
 
 def prepare_table(filename, f, a, b, dx, delta):
+    randcount = 200
     with open(filename, "w") as file:
         x = a
         while x <= b:
-            y = f(x) + randint(-100, 100)/200 * delta
+            y = f(x) + randint(-randcount/2, randcount/2)/randcount * delta
             p = 1
             print("{:7.3f} {:7.3f} {:7.3f}".format(x, y, p), file=file)
             x += dx
@@ -137,12 +217,29 @@ def print_table(table):
     for line in table:
         print("{:7.3f} {:7.3f} {:7.3f}".format(line.x, line.y, line.p))
 
-prepare_table(filename="t2.txt", f=f1, a=-2.5, b=2.5, dx=0.1, delta=3)
-table = get_table("table.txt")
+
+def get_raz(table, A, n):
+    ans = 0
+    y = [0 for i in range(len(table))]
+    for i in range(len(table)):
+        for j in range(n + 1):
+            y[i] += fi(table[i].x, j) * A[j]
+        ans += (table[i].y - y[i])**2
+    return ans
+
+
+prepare_table(filename="t1.txt", f=f, a=-3, b=3.01, dx=1, delta=0.2)
+table = get_table("t1.txt")
 print_table(table)
+print("число точек: ", len(table))
 n = int(input("Введите степень полинома: "))
-if n+1 > len(table):
-    print("В таблице недостаточно точек")
-else:
-    A = get_aproximation_array(table, n)
-    print_plot(table, A, n)
+
+#if n >= len(table):
+#    print("В таблице недостаточно точек")
+#elif 0 >= n:
+#    print("Неверная степень полинома")
+#else:
+
+A = get_aproximation_array(table, n)
+print(get_raz(table, A, n))
+print_plot(table, A, n)
