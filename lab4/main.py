@@ -30,6 +30,21 @@ def high_precision(table, h):
     return der
 
 
+def runge(table, h):
+    h_list = middle_newton(table, h)
+    h2_list = [None for i in range(len(table))]
+    for i in range(2, len(table) - 2):
+        h2_list[i] = (table[i + 2].y - table[i - 2].y) / (4*h)
+    res = [None for i in range(len(table))]
+    for i in range(2, len(table) - 2):
+        res[i] = h_list[i] + (h_list[i]-h2_list[i])/3
+    return res
+
+
+def alignment_variables(table, h):
+    return [None for i in range(len(table))]
+
+
 def get_table(f, a, b, h):
     table = list()
     x = a
@@ -39,13 +54,15 @@ def get_table(f, a, b, h):
     return table
 
 
-def print_table(table, r_newton, m_newton, h_perc):
-    print("|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|".format("x", "y", "right", "middle", "high"))
+def print_table(table, r_newton, m_newton, h_perc, runge, alignment):
+    print("|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|".format("x", "y", "Правой", "Среднее", "Повыш.", "Рунге", "Выравн."))
     for i in range(len(table)):
         s1 = "{:7.4f}".format(r_newton[i]) if r_newton[i] else ' '
         s2 = "{:7.4f}".format(m_newton[i]) if m_newton[i] else ' '
         s3 = "{:7.4f}".format(h_perc[i]) if h_perc[i] else ' '
-        print("|{:7.4f}|{:7.4f}|{:7s}|{:7s}|{:7s}|".format(table[i].x, table[i].y, s1, s2, s3))
+        s4 = "{:7.4f}".format(runge[i]) if runge[i] else ' '
+        s5 = "{:7.4f}".format(alignment[i]) if alignment[i] else ' '
+        print("|{:7.4f}|{:7.4f}|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|".format(table[i].x, table[i].y, s1, s2, s3, s4, s5))
 
 
 
@@ -60,7 +77,9 @@ def main():
     r_n = right_newton(table=table, h=h)
     m_n = middle_newton(table=table, h=h)
     h_p = high_precision(table=table, h=h)
-    print_table(table=table, r_newton=r_n, m_newton=m_n, h_perc=h_p)
+    r = runge(table=table, h=h)
+    a_v = alignment_variables(table=table, h=h)
+    print_table(table=table, r_newton=r_n, m_newton=m_n, h_perc=h_p, runge=r, alignment=a_v)
 
 
 if __name__ == '__main__':
