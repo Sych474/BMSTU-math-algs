@@ -1,4 +1,4 @@
-from math import e
+from math import e, log
 from collections import namedtuple
 
 Point = namedtuple('Table', ['x', 'y'])
@@ -42,7 +42,11 @@ def runge(table, h):
 
 
 def alignment_variables(table, h):
-    return [None for i in range(len(table))]
+    tmp_table = [Point(elem.x, log(elem.y)) for elem in table]
+    ans = [None for i in range(len(tmp_table))]
+    for i in range(1, len(tmp_table) - 1):
+        ans[i] = (tmp_table[i + 1].y - tmp_table[i - 1].y) / (2 * h) * table[i].y
+    return ans
 
 
 def get_table(f, a, b, h):
@@ -55,7 +59,7 @@ def get_table(f, a, b, h):
 
 
 def print_table(table, r_newton, m_newton, h_perc, runge, alignment):
-    print("|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|".format("x", "y", "Правой", "Среднее", "Повыш.", "Рунге", "Выравн."))
+    print("|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|{:7s}|".format("x", "y", "Правый", "Среднее", "Повыш.", "Рунге", "Выравн."))
     for i in range(len(table)):
         s1 = "{:7.4f}".format(r_newton[i]) if r_newton[i] else ' '
         s2 = "{:7.4f}".format(m_newton[i]) if m_newton[i] else ' '
