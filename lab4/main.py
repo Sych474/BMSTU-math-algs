@@ -3,41 +3,61 @@ from collections import namedtuple
 
 Point = namedtuple('Table', ['x', 'y'])
 
+from lab4.diff_lib import *
+from lab4.newton import newton_polinom
+
 
 def f(x):
     return e**x
 
 
+'''
 def right_newton(table, h):
     der = [None for i in range(len(table))]
     for i in range(len(table)-1):
-        der[i] = (table[i+1].y - table[i].y)/h
+        der[i] = (table[i+1].y - table[i].y)/(table[i+1].x - table[i].x)
     return der
 
 
 def middle_newton(table, h):
     der = [None for i in range(len(table))]
     for i in range(1, len(table)-1):
-        der[i] = (table[i+1].y - table[i-1].y)/(2*h)
+        #der[i] = (table[i+1].y - table[i-1].y)/(2*h)
+        der[i] = (table[i+1].y - table[i-1].y)/(table[i+1].x - table[i-1].x)
     return der
 
 
 def high_precision(table, h):
     der = [None for i in range(len(table))]
     n = len(table)-1
-    der[0] = (-3*table[0].y + 4*table[1].y - table[2].y)/(2*h)
-    der[n] = (3 * table[n].y - 4 * table[n-1].y + table[n-2].y) / (2*h)
+    der[0] = (-3*table[0].y + 4*table[1].y - table[2].y)/(table[2].x - table[0].x)
+    der[n] = (3 * table[n].y - 4 * table[n-1].y + table[n-2].y) / (table[n].x - table[n-2].x)
+    #der[0] = (-3*table[0].y + 4*table[1].y - table[2].y)/(2*h)
+    #der[n] = (3 * table[n].y - 4 * table[n-1].y + table[n-2].y) / (2*h)
     return der
 
 
 def runge(table, h):
-    h_list = middle_newton(table, h)
-    h2_list = [None for i in range(len(table))]
-    for i in range(2, len(table) - 2):
-        h2_list[i] = (table[i + 2].y - table[i - 2].y) / (4*h)
+    h1 = [None for i in range(len(table))]
+    for i in range(len(table) - 1):
+        h1[i] = (table[i + 1].y - table[i].y) / (table[i+1].x - table[i].x)
+        #h1[i] = (table[i + 1].y - table[i].y) / h
+    for i in range(len(table) - 2, len(table)):
+        h1[i] = (table[i].y - table[i - 1].y) / (table[i].x - table[i-1].x)
+        #h1[i] = (table[i].y - table[i-1].y) / h
+
+    h2 = [None for i in range(len(table))]
+    for i in range(len(table) - 2):
+        h2[i] = (table[i + 2].y - table[i].y) / (table[i+2].x - table[i].x)
+        #h2[i] = (table[i + 2].y - table[i].y) / (2 * h)
+    for i in range(len(table) - 2, len(table)):
+        h2[i] = (table[i].y - table[i - 2].y) / (table[i].x - table[i-2].x)
+        #h2[i] = (table[i].y - table[i - 2].y) / (2 * h)
+
     res = [None for i in range(len(table))]
-    for i in range(2, len(table) - 2):
-        res[i] = h_list[i] + (h_list[i]-h2_list[i])/3
+    for i in range(len(table)):
+        res[i] = h1[i] + (h1[i] - h2[i])
+
     return res
 
 
@@ -45,7 +65,9 @@ def alignment_variables(table, h):
     tmp_table = [Point(elem.x, log(elem.y)) for elem in table]
     ans = [None for i in range(len(tmp_table))]
     for i in range(1, len(tmp_table) - 1):
-        ans[i] = (tmp_table[i + 1].y - tmp_table[i - 1].y) / (2 * h) * table[i].y
+        #h2 = 2 * h
+        h2 = tmp_table[i + 1].x - tmp_table[i - 1].x
+        ans[i] = (tmp_table[i + 1].y - tmp_table[i - 1].y) / (h2) * table[i].y
     return ans
 
 
@@ -139,6 +161,7 @@ def newton_polinom(table, x, n):
         #print(add)
         y += add
     return y
+'''
 
 
 def get_table(f, a, b, h):
@@ -148,6 +171,26 @@ def get_table(f, a, b, h):
         table.append(Point(x, f(x)))
         x += h
     return table
+
+
+def get_table_file(filename):
+    table = []
+    with open(filename, 'r') as f:
+        line = f.readline()
+        while line:
+            x, y = map(float, line.split())
+            table.append(Point(x, y))
+            line = f.readline()
+    table.sort()
+    return table
+
+
+def prepare_table(filename, f, a, b, dx):
+    with open(filename, "w") as file:
+        x = a
+        while x <= b:
+            print("{:7.3f} {:7.3f}".format(x, f(x)), file=file)
+            x += dx
 
 
 def print_table(table, r_newton, m_newton, h_perc, runge, alignment):
@@ -162,11 +205,18 @@ def print_table(table, r_newton, m_newton, h_perc, runge, alignment):
 
 
 def main():
-    a = float(input("Введите a: "))
-    b = float(input("Введите b: "))
-    h = float(input("Введите шаг: "))
-
+    #a = float(input("Введите a: "))
+    #b = float(input("Введите b: "))
+    #h = float(input("Введите шаг: "))
+    a = 0
+    b = 5
+    h = 0.5
     table = get_table(f=f, a=a, b=b, h=h)
+    prepare_table(filename="t1.txt", a=a, b=b, dx=h, f=f)
+    table = get_table_file("t1.txt")
+    if len(table) < 2:
+        print("Введено менее 2 точек")
+        return
     r_n = right_newton(table=table, h=h)
     m_n = middle_newton(table=table, h=h)
     h_p = high_precision(table=table, h=h)
@@ -174,11 +224,13 @@ def main():
     a_v = alignment_variables(table=table, h=h)
     print_table(table=table, r_newton=r_n, m_newton=m_n, h_perc=h_p, runge=r, alignment=a_v)
 
+    print("Дифф-е при помощи полинома Ньютона")
     x = float(input("Введите x: "))
     n = int(input("Введите число узлов: "))
-    print(newton_polinom(table=table, x=x, n=n-1))
-    print()
-
+    y = newton_polinom(table=table, x=x, n=n-1)
+    print(y)
+    print("Реальное значение: ", f(x))
+    print("Разница: ", abs(f(x) - y))
 
 if __name__ == '__main__':
     main()
