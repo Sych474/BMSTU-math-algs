@@ -22,7 +22,6 @@ def print_array(a_arr):
     print()
 
 
-
 def get_table(filename):
     table = []
     with open(filename, 'r') as f:
